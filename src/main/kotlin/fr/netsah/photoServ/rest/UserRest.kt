@@ -54,7 +54,7 @@ class UserRest {
         if (username.equals(secuContext!!.userPrincipal.name))
             UserRepo.instance.findOneUser(username).subscribe(sub)
         else
-            UserRepo.instance.findOneUser(username).map( {u-> u.copy( _id=null,mail=null ) }).subscribe(sub)
+            UserRepo.instance.findOneUser(username).map( {u->  u.copy( mail=null ) }).subscribe(sub)
     }
 
 
