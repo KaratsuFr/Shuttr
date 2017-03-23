@@ -21,17 +21,28 @@ class StartupListener : ServletContextListener {
     companion object {
         private var mongodExecutable: MongodExecutable? = null
         private var bindIp = "localhost"
-        private var port = 12346
+        private var port = 27017
+        private var mongoUser = "demo"
+        private var mongoPass ="demo"
+        private var databaseName = "bdd"
     }
 
     override fun contextInitialized(event: ServletContextEvent) {
         val starter = MongodStarter.getDefaultInstance()
+        if(System.getProperty("MONGODB_DATABASE") != null){
+            databaseName = System.getProperty("MONGODB_DATABASE")
+        }
+        if(System.getProperty("MONGODB_USER") != null){
+            mongoUser = System.getProperty("MONGODB_USER")
+        }
+        if(System.getProperty("MONGODB_PASSWORD") != null){
+            mongoPass = System.getProperty("MONGODB_PASSWORD")
+        }
 
         var mongodConfig: IMongodConfig? = MongodConfigBuilder()
                     .version(Version.Main.PRODUCTION)
                     .net(Net(bindIp, port, Network.localhostIsIPv6()))
                     .build()
-
 
         if(System.getProperty("dev") != null) {
             mongodExecutable = starter.prepare(mongodConfig!!)
@@ -40,7 +51,7 @@ class StartupListener : ServletContextListener {
             Mongo.instance.getCollection(UserRepo::class.java.simpleName).createIndex(Document("username", "text"), IndexOptions().unique(true)).toBlocking().single()
         }
 
-        Mongo.settings = "mongodb://$bindIp:$port"
+        Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port/$databaseName"
 
     }
 
