@@ -1,6 +1,5 @@
 package fr.netsah.photoServ.security
 
-import fr.netsah.photoServ.pojo.User
 import org.jboss.resteasy.core.Headers
 import org.jboss.resteasy.core.ResourceMethodInvoker
 import org.jboss.resteasy.core.ServerResponse
@@ -151,10 +150,10 @@ class SecurityInterceptor : ContainerRequestFilter {
     }
 
 
-    private fun isUserAllowed(userBd: User, rolesSet: Set<String>): Boolean {
-        // NO Role management yet
-        return true
-
+//    private fun isUserAllowed(userBd: User, rolesSet: Set<String>): Boolean {
+//        // NO Role management yet
+//        return true
+//
 
 //
 //        val isAllowed = false
@@ -168,6 +167,6 @@ class SecurityInterceptor : ContainerRequestFilter {
 //            isAllowed = true
 //        }
 //        return isAllowed
-    }
+//    }
 }
 

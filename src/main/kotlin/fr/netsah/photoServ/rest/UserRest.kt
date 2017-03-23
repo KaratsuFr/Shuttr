@@ -51,7 +51,7 @@ class UserRest {
 
         val sub = buildUserSubResponse(response)
         // current user is user to get
-        if (username.equals(secuContext!!.userPrincipal.name))
+        if (username.equals(secuContext.userPrincipal.name))
             UserRepo.instance.findOneUser(username).subscribe(sub)
         else
             UserRepo.instance.findOneUser(username).map( {u->  u.copy( mail=null ) }).subscribe(sub)
