@@ -30,13 +30,6 @@ class StartupListener : ServletContextListener {
     override fun contextInitialized(event: ServletContextEvent) {
         val starter = MongodStarter.getDefaultInstance()
 
-        if(System.getProperty("MONGODB_USER") != null) mongoUser = System.getProperty("MONGODB_USER")
-        if(System.getProperty("MONGODB_PASSWORD") != null) mongoPass = System.getProperty("MONGODB_PASSWORD")
-
-        if(System.getProperty("MONGODB_DB_HOST") != null) bindIp = System.getProperty("MONGODB_DB_HOST")
-        if(System.getProperty("MONGODB_DB_PORT") != null) port = Integer.valueOf(System.getProperty("MONGODB_DB_PORT"))
-
-
         if(System.getProperty("dev") != null) {
 
             val mongodConfig: IMongodConfig? = MongodConfigBuilder()
@@ -50,7 +43,8 @@ class StartupListener : ServletContextListener {
             Mongo.instance.getCollection(UserRepo::class.java.simpleName).createIndex(Document("username", "text"), IndexOptions().unique(true)).toBlocking().single()
         }
 
-        Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port/$databaseName"
+        if(System.getProperty("MONGODB_URI") != null)  Mongo.settings = System.getProperty("MONGODB_URI")
+        else Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port/$databaseName"
 
     }
 
