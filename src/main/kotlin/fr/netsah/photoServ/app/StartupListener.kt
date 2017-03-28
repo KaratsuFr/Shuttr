@@ -24,14 +24,12 @@ class StartupListener : ServletContextListener {
         private var port = 27017
         private var mongoUser = "demo"
         private var mongoPass ="demo"
-        private var databaseName = "bdd"
+        private var databaseName = "shuttr"
     }
 
     override fun contextInitialized(event: ServletContextEvent) {
         val starter = MongodStarter.getDefaultInstance()
-        if(System.getProperty("MONGODB_DATABASE") != null){
-            databaseName = System.getProperty("MONGODB_DATABASE")
-        }
+
         if(System.getProperty("MONGODB_USER") != null){
             mongoUser = System.getProperty("MONGODB_USER")
         }
@@ -39,12 +37,21 @@ class StartupListener : ServletContextListener {
             mongoPass = System.getProperty("MONGODB_PASSWORD")
         }
 
-        var mongodConfig: IMongodConfig? = MongodConfigBuilder()
+        if(System.getProperty("OPENSHIFT_MONGODB_DB_HOST") != null){
+            bindIp = System.getProperty("OPENSHIFT_MONGODB_DB_HOST")
+        }
+        if(System.getProperty("OPENSHIFT_MONGODB_DB_PORT") != null){
+            port = System.getProperty("OPENSHIFT_MONGODB_DB_PORT")
+        }
+
+
+        if(System.getProperty("dev") != null) {
+
+            val mongodConfig: IMongodConfig? = MongodConfigBuilder()
                     .version(Version.Main.PRODUCTION)
                     .net(Net(bindIp, port, Network.localhostIsIPv6()))
                     .build()
 
-        if(System.getProperty("dev") != null) {
             mongodExecutable = starter.prepare(mongodConfig!!)
             mongodExecutable!!.start()
             // create a text index on the "content" field
