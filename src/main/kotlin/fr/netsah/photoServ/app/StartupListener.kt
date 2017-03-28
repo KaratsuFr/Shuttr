@@ -24,25 +24,17 @@ class StartupListener : ServletContextListener {
         private var port = 27017
         private var mongoUser = "demo"
         private var mongoPass ="demo"
-        private var databaseName = "shuttr"
+        private var databaseName = "kyori"
     }
 
     override fun contextInitialized(event: ServletContextEvent) {
         val starter = MongodStarter.getDefaultInstance()
 
-        if(System.getProperty("MONGODB_USER") != null){
-            mongoUser = System.getProperty("MONGODB_USER")
-        }
-        if(System.getProperty("MONGODB_PASSWORD") != null){
-            mongoPass = System.getProperty("MONGODB_PASSWORD")
-        }
+        if(System.getProperty("MONGODB_USER") != null) mongoUser = System.getProperty("MONGODB_USER")
+        if(System.getProperty("MONGODB_PASSWORD") != null) mongoPass = System.getProperty("MONGODB_PASSWORD")
 
-        if(System.getProperty("OPENSHIFT_MONGODB_DB_HOST") != null){
-            bindIp = System.getProperty("OPENSHIFT_MONGODB_DB_HOST")
-        }
-        if(System.getProperty("OPENSHIFT_MONGODB_DB_PORT") != null){
-            port = System.getProperty("OPENSHIFT_MONGODB_DB_PORT")
-        }
+        if(System.getProperty("MONGODB_DB_HOST") != null) bindIp = System.getProperty("MONGODB_DB_HOST")
+        if(System.getProperty("MONGODB_DB_PORT") != null) port = Integer.valueOf(System.getProperty("MONGODB_DB_PORT"))
 
 
         if(System.getProperty("dev") != null) {
