@@ -103,9 +103,6 @@ class SecurityInterceptor : ContainerRequestFilter {
                 }
                 val password = tokenizer.nextToken()
 
-                //Verifying Username and password
-                println(username)
-                println(password)
                 try {
                     UserSecurityUtils.instance.isValidUser(username, password)
                 }catch (ex : NotFoundException){
