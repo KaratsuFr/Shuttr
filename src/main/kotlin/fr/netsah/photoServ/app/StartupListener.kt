@@ -44,7 +44,11 @@ class StartupListener : ServletContextListener {
         }
 
         if(System.getProperty("MONGODB_URI") != null)  Mongo.settings = System.getProperty("MONGODB_URI")
-        else Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port/$databaseName"
+        else Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port"
+
+
+        if(System.getProperty("MONGODB_DB") != null)  Mongo.dbName = System.getProperty("MONGODB_DB")
+        else Mongo.dbName = databaseName
 
     }
 
