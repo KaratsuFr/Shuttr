@@ -83,7 +83,7 @@ class StorageTest {
             Mongo.instance.getCollection("testPhoto").find().first().map { obs ->
                 val photoFetch = gson.fromJson(obs.toJson(), Photo::class.java)
                 println(photoFetch.metadata)
-                val saveFile = File.createTempFile("img", ".jpg");
+                val saveFile = File.createTempFile("img", ".jpg")
                 saveFile.writeBytes(photoFetch.binImg)
                 println(saveFile.absolutePath)
             }.subscribe(testSubFetch)
@@ -104,8 +104,8 @@ class StorageTest {
         val testSub: TestSubscriber<Any> = TestSubscriber()
         val testSub2: TestSubscriber<Any> = TestSubscriber()
 
-        UserRepo.instance.saveOneUser(u).doOnSuccess {
-            UserRepo.instance.saveOneUser(u).doOnSuccess {
+        UserRepo.saveOneUser(u).doOnSuccess {
+            UserRepo.saveOneUser(u).doOnSuccess {
                 val nbUser =Mongo.instance.getCollection(UserRepo::class.java.simpleName).count().toBlocking().first()
                 println("Nb User : $nbUser")
 

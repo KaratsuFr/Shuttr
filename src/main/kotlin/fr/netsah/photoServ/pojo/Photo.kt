@@ -20,8 +20,8 @@ data class Photo(var _id: ObjectId?=null, val dateUpload: LocalDateTime = LocalD
                 throw RuntimeException("The file ${f.absoluteFile} could not be opened as an image")
             }
 
-            var metadataFile = ImageMetadataReader.readMetadata(f)
-            var metadata = HashMap<String,String>()
+            val metadataFile = ImageMetadataReader.readMetadata(f)
+            val metadata = HashMap<String,String>()
             metadataFile.directories
                     .flatMap { it.tags }
                     .forEach { metadata.put(it.tagName, it.description) }

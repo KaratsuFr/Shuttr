@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Angular Material - Starter App</title>
+    <title>Kyori Photo</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="">
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="description" content=""/>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no"/>
 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
     <link rel="stylesheet" href="vendor/angular-material/angular-material.css"/>
-    <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/font-awesome-4.7.0/css/font-awesome.min.css"/>
     <link rel="stylesheet" href="assets/app.css"/>
 
     <style type="text/css">
@@ -23,110 +24,42 @@
 
 </head>
 
-<body ng-app="photoServ" layout="column" ng-controller="UserController as ul" ng-cloak>
+<body ng-app="kyori" layout="column" ng-cloak>
 
-<md-toolbar layout="row">
-    <md-button class="menu" ng-click="ul.toggleList()" aria-label="Show User List">
-        <md-icon md-svg-icon="menu"></md-icon>
-    </md-button>
-    <h1>Kyori - Work In Progress - stay tuned !</h1>
+<md-toolbar>
+    <div class="md-toolbar-tools">
+
+        <md-button class="menu" aria-label="Menu">
+            <md-icon md-svg-icon="menu"></md-icon>
+        </md-button>
+        <p translate="wip"></p>
+        <span flex></span>
+        <md-button class="md-raised" ng-href="{{googleUrl}}" target="_blank">
+             {{'login' | translate}}  <i class="fa fa-user-circle" aria-hidden="true"></i>
+        </md-button>
+    </div>
 </md-toolbar>
 
 <div flex layout="row">
-    <md-sidenav ng-click="ul.toggleList()" md-component-id="left" class="md-sidenav-left">
-        <h1>Mini galerie</h1>
-        <div class="gridListdemoDynamicTiles">
-            <md-grid-list
-                    md-cols="1" md-cols-sm="2" md-cols-md="3" md-cols-gt-md="6"
-                    md-row-height-gt-md="1:1" md-row-height="4:3"
-                    md-gutter="8px" md-gutter-gt-sm="4px">
-
-                <md-grid-tile ng-repeat="it in ul.users"
-                              md-rowspan="{{tile.span.row}}"
-                              md-colspan="{{tile.span.col}}"
-                              md-colspan-sm="1"
-                              md-colspan-xs="1"
-                              ng-class="tile.background">
-                    <md-icon md-svg-icon="{{ it.avatar }}"></md-icon>
-                    <md-grid-tile-footer><h3>{{it.name}}</h3></md-grid-tile-footer>
-                </md-grid-tile>
-        </div>
-    </md-sidenav>
-
 
     <md-content flex id="content">
-        <h2>{{ul.selected.name}}</h2>
-
-        <md-content class="md-padding" layout-xs="column" layout="row">
-
-            <p>{{ul.selected.content}}</p>
-
-            <md-button class="share" md-no-ink ng-click="ul.makeContact(ul.selected)"
-                       aria-label="Share with {{ ul.selected.name }}">
-                <md-icon md-svg-icon="share"></md-icon>
-                Admin
-            </md-button>
-        </md-content>
-
-        <md-content class="md-padding" layout-xs="column" layout="row">
-            <div class="gridListdemoDynamicTiles" flex-xs flex-gt-xs="50">
-                <md-grid-list
-                        md-cols="1" md-cols-sm="2" md-cols-md="3" md-cols-gt-md="4"
-                        md-row-height-gt-md="1:1" md-row-height="4:3"
-                        md-gutter="8px" md-gutter-gt-sm="4px">
-
-                    <md-grid-tile ng-repeat="it in ul.users"
-                                  md-rowspan="{{tile.span.row}}"
-                                  md-colspan="{{tile.span.col}}"
-                                  md-colspan-sm="1"
-                                  md-colspan-xs="1"
-                                  ng-class="tile.background">
+        <h1 translate="wip"></h1>
+    </md-content>
 
 
-                        <md-card>
-                            <md-icon md-svg-icon="{{ it.avatar }}"></md-icon>
-                            <md-card-title>
-                                <md-card-title-text>
-                                    <span class="md-headline">{{it.name}}</span>
-                                </md-card-title-text>
-                            </md-card-title>
-                            <md-card-content>
-                                <p>
-                                    The titles of Washed Out's breakthrough song and the first single from Paracosm
-                                    share the
-                                    two most important words in Ernest Greene's musical language: feel it. It's a simple
-                                    request, as well...
-                                    <i class="fa fa-heart-o" aria-hidden="true"></i>
-                                </p>
+    <md-content class="md-padding" layout-xs="column" layout="row">
 
-
-                            </md-card-content>
-
-                            <md-card-actions layout="row" layout-align="end center">
-
-                                <md-button class="md-raised" aria-label="Favorite"><i class="fa fa-heart-o"
-                                                                                      aria-hidden="true"></i> Like
-
-                                </md-button>
-
-                            </md-card-actions>
-                        </md-card>
-                    </md-grid-tile>
-            </div>
-        </md-content>
+    </md-content>
 
 </div>
 
 <script src="vendor/angular/angular.min.js"></script>
 <script src="vendor/angular-animate/angular-animate.min.js"></script>
 <script src="vendor/angular-aria/angular-aria.js"></script>
-<script type="text/javascript" src="vendor/angular-material/angular-material.js"></script>
+<script src="vendor/angular-material/angular-material.js"></script>
 <script src="vendor/angular-translate/angular-translate.js"></script>
 <script src="vendor/angular-ui-router/release/angular-ui-router.min.js"></script>
 
-<script src="js/users/Users.js"></script>
-<script src="js/users/UserController.js"></script>
-<script src="js/users/UserService.js"></script>
 <script src="js/App.js"></script>
 
 </body>

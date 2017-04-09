@@ -27,7 +27,7 @@ import javax.ws.rs.ext.Provider
 class SecurityInterceptor : ContainerRequestFilter {
 
     @Context
-    lateinit  var webRequest: HttpServletRequest
+    lateinit var webRequest: HttpServletRequest
 
     companion object {
         val AUTHORIZATION_PROPERTY = "Authorization"
@@ -59,7 +59,7 @@ class SecurityInterceptor : ContainerRequestFilter {
                 return
             }
 
-            var username: String?
+            val username: String?
 
             //Get encoded username and password
             val basicAuthInfo = authorization.find { h -> h.startsWith(AUTHENTICATION_BASIC_SCHEME) }
@@ -80,14 +80,14 @@ class SecurityInterceptor : ContainerRequestFilter {
                 username = tokenizer.nextToken()
                 val tokenToCheck = tokenizer.nextToken()
 
-                if (!tokenToCheck.equals(UserSecurityUtils.instance.calculateHMAC(username))) {
+                if (tokenToCheck != UserSecurityUtils.calculateHMAC(username)) {
                     requestContext.abortWith(ACCESS_DENIED)
                     return
                 }
             } else if (basicAuthInfo != null) {
                 val encodedUserPassword = basicAuthInfo.replaceFirst(AUTHENTICATION_BASIC_SCHEME, "")
                 //Decode username and password
-                var usernameAndPassword: String?
+                val usernameAndPassword: String?
                 try {
                     usernameAndPassword = String(Base64.decode(encodedUserPassword))
                 } catch (e: IOException) {
@@ -104,8 +104,8 @@ class SecurityInterceptor : ContainerRequestFilter {
                 val password = tokenizer.nextToken()
 
                 try {
-                    UserSecurityUtils.instance.isValidUser(username, password)
-                }catch (ex : NotFoundException){
+                    UserSecurityUtils.isValidUser(username, password)
+                } catch (ex: NotFoundException) {
                     requestContext.abortWith(ACCESS_DENIED)
                     return
                 }

@@ -9,17 +9,13 @@ import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.NotFoundException
 
 
-class UserSecurityUtils private constructor() {
+object UserSecurityUtils {
 
     val SIGNATURE_APP = System.getProperty("SIG_APP")!!
 
-    companion object {
-        val instance = UserSecurityUtils()
-    }
-
     fun isValidUser(username: String, password: String): User {
         try {
-            val userBd = UserRepo.instance.findOneUser(username).toBlocking().value()
+            val userBd = UserRepo.findOneUser(username).toBlocking().value()
             if (userBd.password.equals(password)) {
                 return userBd
             } else {

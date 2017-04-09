@@ -18,8 +18,8 @@ data class Password(val hash: String, val salt: String) {
          */
         fun encode(password: String, salt: String = UUID.randomUUID().toString()): Password {
             val md = MessageDigest.getInstance("SHA-256")
-            md.update(salt.toByteArray(Charset.forName("UTF-8")));
-            md.update(password.toByteArray(Charset.forName("UTF-8")));
+            md.update(salt.toByteArray(Charset.forName("UTF-8")))
+            md.update(password.toByteArray(Charset.forName("UTF-8")))
             val hashedPassword = md.digest()
 
             return Password(hash = Base64.getEncoder().encodeToString(hashedPassword),
@@ -38,7 +38,13 @@ data class Password(val hash: String, val salt: String) {
             when (other) {
                 null -> false
                 is String -> equals(Password.encode(password = other, salt = salt))
-                is Password -> hash.equals(other.hash) && salt.equals(other.salt)
+                is Password -> hash == other.hash && salt == other.salt
                 else -> false
             }
+
+    override fun hashCode(): Int {
+        var result = hash.hashCode()
+        result = 31 * result + salt.hashCode()
+        return result
+    }
 }

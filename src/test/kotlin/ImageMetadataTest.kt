@@ -13,7 +13,7 @@ class ImageMetadataTest{
 
     @Test fun extractMetaData(){
 
-        var metadata = ImageMetadataReader.readMetadata( javaClass.classLoader.getResourceAsStream("imgTest.JPG"))
+        val metadata = ImageMetadataReader.readMetadata( javaClass.classLoader.getResourceAsStream("imgTest.JPG"))
 
         for (directory in metadata.directories) {
             for (tag in directory.tags) {

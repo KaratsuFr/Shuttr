@@ -34,13 +34,13 @@ class UserRest {
         val sub = buildUserSubResponse(response)
 
         val username = "test"
-        UserRepo.instance.findOneUser(username).subscribe({ u ->
+        UserRepo.findOneUser(username).subscribe({ u ->
             print("user found $u")
             response.resume(u)
         }, { ex ->
             println("exception not found $ex")
             val u = User(username = username, password = Password.encode("pass", "salt"))
-            UserRepo.instance.saveOneUser(u).subscribe({ UserRepo.instance.findOneUser(username).subscribe(sub) }
+            UserRepo.saveOneUser(u).subscribe({ UserRepo.findOneUser(username).subscribe(sub) }
                     , { ex -> response.resume(ex) })
         })
     }
@@ -51,10 +51,10 @@ class UserRest {
 
         val sub = buildUserSubResponse(response)
         // current user is user to get
-        if (username.equals(secuContext.userPrincipal.name))
-            UserRepo.instance.findOneUser(username).subscribe(sub)
+        if (username == secuContext.userPrincipal.name)
+            UserRepo.findOneUser(username).subscribe(sub)
         else
-            UserRepo.instance.findOneUser(username).map( {u->  u.copy( mail=null ) }).subscribe(sub)
+            UserRepo.findOneUser(username).map( {u->  u.copy( mail=null ) }).subscribe(sub)
     }
 
 
@@ -67,8 +67,8 @@ class UserRest {
 
         try {
             // Authenticate the user using the credentials provided
-            UserSecurityUtils.instance.isValidUser(username, password)
-            return Response.ok().entity(UserSecurityUtils.instance.generateToken(username)).build()
+            UserSecurityUtils.isValidUser(username, password)
+            return Response.ok().entity(UserSecurityUtils.generateToken(username)).build()
         } catch (e: Exception) {
             logger.warn { e }
             return Response.status(Response.Status.UNAUTHORIZED).build()
@@ -77,7 +77,7 @@ class UserRest {
     }
 
     fun buildUserSubResponse(response: AsyncResponse): ActionSubscriber<User> {
-        return ActionSubscriber<User>({ u: User ->
+        return ActionSubscriber({ u: User ->
             response.resume(u)
         }, { ex: Throwable -> logger.error { ex }
             response.resume(Response.noContent().build()) }, {})
