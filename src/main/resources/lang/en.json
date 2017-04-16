@@ -1,0 +1,20 @@
+{
+  "kyori.title": "Kyori Photo Challenge",
+  "login": "login",
+  "wip": "Kyori - Project currently under heavy work - stay tuned",
+  "field":{
+    "required":"This input is required!",
+    "invalid":"Invalid input data",
+    "tooBig":"Too much input data"
+  },
+  "loginForm": {
+    "login": "login",
+    "register": "register",
+    "username":"Nickname",
+    "password":"Password",
+    "mail":"Email",
+    "title":"Subcription or Login form",
+    "loginText":"You need to login!",
+    "registerText":"Register formula, data won't be shared and will only be use on Kyori - Add your mail if you wish notification."
+  }
+}

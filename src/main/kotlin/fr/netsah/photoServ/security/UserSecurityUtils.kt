@@ -2,6 +2,7 @@ package fr.netsah.photoServ.security
 
 import fr.netsah.photoServ.pojo.User
 import fr.netsah.photoServ.repo.UserRepo
+import mu.KLogging
 import org.jboss.resteasy.util.Base64
 import java.security.GeneralSecurityException
 import javax.crypto.Mac
@@ -11,11 +12,14 @@ import javax.ws.rs.NotFoundException
 
 object UserSecurityUtils {
 
+    val LOG = KLogging().logger
+
     val SIGNATURE_APP = System.getProperty("SIG_APP")!!
 
     fun isValidUser(username: String, password: String): User {
         try {
             val userBd = UserRepo.findOneUser(username).toBlocking().value()
+            LOG.info("userBd : $userBd - pass to check : $password")
             if (userBd.password.equals(password)) {
                 return userBd
             } else {
@@ -27,7 +31,7 @@ object UserSecurityUtils {
     }
 
     fun generateToken(username: String): String {
-        return Base64.encodeBytes((username + ":" + calculateHMAC(username)).toByteArray())
+        return "Token " + Base64.encodeBytes((username + ":" + calculateHMAC(username)).toByteArray())
     }
 
     fun calculateHMAC(secret: String): String {

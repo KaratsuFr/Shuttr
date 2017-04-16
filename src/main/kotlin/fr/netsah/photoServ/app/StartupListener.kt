@@ -27,10 +27,10 @@ class StartupListener : ServletContextListener {
         private var databaseName = "kyori"
     }
 
-    override fun contextInitialized(event: ServletContextEvent) {
-        val starter = MongodStarter.getDefaultInstance()
+    override fun contextInitialized(event: ServletContextEvent?) {
 
         if(System.getProperty("dev") != null) {
+            val starter = MongodStarter.getDefaultInstance()
 
             val mongodConfig: IMongodConfig? = MongodConfigBuilder()
                     .version(Version.Main.PRODUCTION)
@@ -39,16 +39,22 @@ class StartupListener : ServletContextListener {
 
             mongodExecutable = starter.prepare(mongodConfig!!)
             mongodExecutable!!.start()
-            // create a text index on the "content" field
-            Mongo.instance.getCollection(UserRepo::class.java.simpleName).createIndex(Document("username", "text"), IndexOptions().unique(true)).toBlocking().single()
+
+        }else{
+            if(System.getProperty("MONGODB_URI") != null)  Mongo.settings = System.getProperty("MONGODB_URI")
+            else Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port"
+
+
+            if(System.getProperty("MONGODB_DB") != null)  Mongo.dbName = System.getProperty("MONGODB_DB")
+            else Mongo.dbName = databaseName
         }
 
-        if(System.getProperty("MONGODB_URI") != null)  Mongo.settings = System.getProperty("MONGODB_URI")
-        else Mongo.settings = "mongodb://$mongoUser:$mongoPass@$bindIp:$port"
+        // create a text index on the "content" field
+        UserRepo.collection.createIndex(Document("username", "text"), IndexOptions().unique(true)).toBlocking().single()
 
-
-        if(System.getProperty("MONGODB_DB") != null)  Mongo.dbName = System.getProperty("MONGODB_DB")
-        else Mongo.dbName = databaseName
+        if(System.getProperty("SIG_APP") == null){
+            throw ExceptionInInitializerError("SIG APP not define")
+        }
 
     }
 

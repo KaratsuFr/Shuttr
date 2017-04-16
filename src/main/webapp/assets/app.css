@@ -1,0 +1,7 @@
+md-toast.error .md-toast-content, md-toast .md-toast-content{
+    background-color: red;
+}
+
+md-toast.success .md-toast-content, md-toast .md-toast-content{
+    background-color: green;
+}

@@ -1,0 +1,25 @@
+{
+  "kyori.title": "Kyori Concours Photo",
+  "login": "connexion",
+  "logout": "deconnexion",
+  "loginFail":"Information invalide, êtes vous bien enregisté?",
+  "loginSuccess":"Bienvenu",
+  "registerFail":"Enregistrement impossible - ce username est peut être déjà pris ou une erreur technique.",
+  "wip": "Kyori - Project en construction - revenez bientot",
+  "field":{
+    "required":"Ce champs est obligatoire!",
+    "invalid":"La saisie n'est pas correct!",
+    "tooBig":"La saisie est trop grande.",
+    "tooShort":"C'est trop peu de données, il faut en ajouter un peu."
+  },
+  "loginForm":{
+    "login": "connexion",
+    "register":"s'inscrire",
+    "username":"Identifiant utilisateur",
+    "password":"Mot de passe secret",
+    "mail":"Adresse mail - Courriel",
+    "title":"Formulaire d'inscription ou connexion",
+    "loginText":"Il est nécessaire d'avoir un compte avant tout chose",
+    "registerText":"Inscription, les données ne seront pas partagées ni envoyées. Le mail peut être utiliser pour être notifié sur les concours et nouvelles fonctionnalités."
+  }
+}

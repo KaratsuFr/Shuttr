@@ -1,7 +1,9 @@
 package fr.netsah.photoServ.rest
 
+import com.mongodb.rx.client.Success
 import fr.netsah.photoServ.pojo.Password
 import fr.netsah.photoServ.pojo.User
+import fr.netsah.photoServ.pojo.UserInfoDto
 import fr.netsah.photoServ.repo.UserRepo
 import fr.netsah.photoServ.security.UserSecurityUtils
 import mu.KLogging
@@ -16,34 +18,15 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
 
 
-
-
 @Path("/user")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 class UserRest {
 
-    companion object: KLogging()
+    companion object : KLogging()
 
     @Context
-    lateinit  var secuContext: SecurityContext
-
-    @PermitAll
-    @GET
-    fun getMock(@Suspended response: AsyncResponse) {
-        val sub = buildUserSubResponse(response)
-
-        val username = "test"
-        UserRepo.findOneUser(username).subscribe({ u ->
-            print("user found $u")
-            response.resume(u)
-        }, { ex ->
-            println("exception not found $ex")
-            val u = User(username = username, password = Password.encode("pass", "salt"))
-            UserRepo.saveOneUser(u).subscribe({ UserRepo.findOneUser(username).subscribe(sub) }
-                    , { ex -> response.resume(ex) })
-        })
-    }
+    lateinit var secuContext: SecurityContext
 
     @GET
     @Path("/{username}")
@@ -51,36 +34,71 @@ class UserRest {
 
         val sub = buildUserSubResponse(response)
         // current user is user to get
-        if (username == secuContext.userPrincipal.name)
+        if (secuContext.userPrincipal != null && username == secuContext.userPrincipal.name)
             UserRepo.findOneUser(username).subscribe(sub)
         else
-            UserRepo.findOneUser(username).map( {u->  u.copy( mail=null ) }).subscribe(sub)
+            UserRepo.findOneUser(username).map({ u -> u.copy(mail = null) }).subscribe(sub)
     }
 
+    @GET
+    fun pingUser(): String? {
 
+        val currentUserInfo = secuContext.userPrincipal
+        if (currentUserInfo == null) {
+            return null
+        } else {
+            val username = currentUserInfo.name
+            return "{\"username\":\"$username\"}"
+        }
+    }
+
+    @PermitAll
     @POST
-    @Produces("application/json")
-    @Consumes("application/x-www-form-urlencoded")
     @Path("/login")
-    fun authenticateUser(@FormParam("username") username: String,
-                         @FormParam("password") password: String): Response {
+    fun loginUser(user: UserInfoDto): Response {
 
         try {
+            logger.info("login user $user")
+
             // Authenticate the user using the credentials provided
-            UserSecurityUtils.isValidUser(username, password)
-            return Response.ok().entity(UserSecurityUtils.generateToken(username)).build()
+            UserSecurityUtils.isValidUser(user.username, user.password)
+            val token = UserSecurityUtils.generateToken(user.username)
+
+            return Response.ok().entity("{\"token\":\"$token\"}").build()
         } catch (e: Exception) {
             logger.warn { e }
             return Response.status(Response.Status.UNAUTHORIZED).build()
         }
+    }
+
+    @PermitAll
+    @POST
+    @Path("/register")
+    fun registerUser(userInfo: UserInfoDto, @Suspended response: AsyncResponse) {
+        logger.info("register user $userInfo")
+        val user = User(userInfo.username, Password.encode(userInfo.password, UserSecurityUtils.SIGNATURE_APP), userInfo.mail)
+
+        val sub = ActionSubscriber<Success>({
+            response.resume("{\"token\":\"" + UserSecurityUtils.generateToken(userInfo.username) + "\"}")
+        }, { ex: Throwable ->
+            logger.error { ex }
+            response.resume(Response.status(Response.Status.CONFLICT).build())
+        }, {})
+
+        UserRepo.saveOneUser(user).doOnSuccess({response.resume("{\"token\":\"" + UserSecurityUtils.generateToken(userInfo.username) + "\"}")}).doOnError( { ex: Throwable ->
+            logger.error { ex }
+            response.resume(Response.status(Response.Status.CONFLICT).build())
+        }).toBlocking().value()
 
     }
 
     fun buildUserSubResponse(response: AsyncResponse): ActionSubscriber<User> {
         return ActionSubscriber({ u: User ->
             response.resume(u)
-        }, { ex: Throwable -> logger.error { ex }
-            response.resume(Response.noContent().build()) }, {})
+        }, { ex: Throwable ->
+            logger.error { ex }
+            response.resume(Response.noContent().build())
+        }, {})
     }
 }
 

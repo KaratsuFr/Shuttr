@@ -1,0 +1,72 @@
+<md-dialog aria-label="{{'.title' | translate}}" translate-namespace="loginForm">
+    <form name="loginOrRegister" ng-cloak>
+        <md-toolbar class="md-warn">
+            <div class="md-toolbar-tools">
+                <h2 translate=".title"></h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="cancel()">
+                    <md-icon aria-label="Close dialog">close</md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content layout-padding="">
+            <p translate="{{description}}"></p>
+
+            <md-content>
+
+                <md-input-container class="md-icon-float md-block">
+                    <label translate=".username"></label>
+                    <md-icon>perm_identity</md-icon>
+
+                    <input name="username" ng-model="userInfo.username" required md-maxlength="20"  minlength="4" >
+                    <div ng-messages="loginOrRegister.username.$error">
+                        <div ng-message="required" translate="field.required"></div>
+                        <div ng-message="md-maxlength" translate="field.tooLong"></div>
+                        <div ng-message="minlength" translate="field.tooShort"></div>
+                    </div>
+                </md-input-container>
+
+                <md-input-container class="md-icon-float md-block">
+                    <label translate=".password"></label>
+                    <md-icon>security</md-icon>
+
+                    <input name="password" ng-model="userInfo.password" required type="password" md-maxlength="20" minlength="4"    >
+                    <div ng-messages="loginOrRegister.password.$error">
+                        <div ng-message="required" translate="field.required"></div>
+                        <div ng-message="md-maxlength" translate="field.tooBig"></div>
+                        <div ng-message="minlength" translate="field.tooShort"></div>
+                    </div>
+                </md-input-container>
+
+                <div ng-if="!userExist">
+                    <md-input-container class="md-icon-float md-block">
+                        <label translate=".mail"></label>
+                        <md-icon>contact_mail</md-icon>
+                        <input name="mail" ng-model="userInfo.mail" type="email" md-maxlength="40">
+                        <div ng-messages="loginOrRegister.mail.$error" role="alert">
+                            <div ng-message="md-maxlength" translate="field.tooBig"></div>
+                        </div>
+                    </md-input-container>
+                </div>
+            </md-content>
+
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button ng-click="toogleAccess()" target="_blank" md-autofocus
+                       translate="{{toggleBtLabel}}">
+            </md-button>
+            <span flex></span>
+            <md-button class="md-primary md-raised" ng-click="submit()" translate="{{submitLabel}}" type="submit"
+                       ng-disabled="loginOrRegister.$invalid">
+            </md-button>
+
+        </md-dialog-actions>
+    </form>
+
+    <div>
+
+    </div>
+
+</md-dialog>

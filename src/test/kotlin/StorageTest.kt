@@ -1,12 +1,8 @@
+
 import com.google.gson.Gson
 import com.mongodb.MongoWriteException
 import com.mongodb.client.model.IndexOptions
 import de.flapdoodle.embed.mongo.MongodExecutable
-import de.flapdoodle.embed.mongo.MongodStarter
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder
-import de.flapdoodle.embed.mongo.config.Net
-import de.flapdoodle.embed.mongo.distribution.Version
-import de.flapdoodle.embed.process.runtime.Network
 import fr.netsah.photoServ.pojo.Password
 import fr.netsah.photoServ.pojo.Photo
 import fr.netsah.photoServ.pojo.User
@@ -14,7 +10,6 @@ import fr.netsah.photoServ.repo.Mongo
 import fr.netsah.photoServ.repo.UserRepo
 import org.bson.Document
 import org.testng.Assert
-import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 import rx.observers.TestSubscriber
@@ -30,22 +25,26 @@ class StorageTest {
     val gson = Gson()
 
     @BeforeClass fun init() {
-        val starter = MongodStarter.getDefaultInstance()
 
-        val mongodConfig = MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(Net(bindIp, port, Network.localhostIsIPv6()))
-                .build()
+        System.setProperty("dev","true")
+        System.setProperty("SIG_APP","TEST")
 
-        mongodExecutable = starter.prepare(mongodConfig)
-        mongodExecutable!!.start()
-        Mongo.settings = "mongodb://$bindIp:$port"
+        val listener = StartupListener()
+        listener.contextInitialized(null)
+
+//        val starter = MongodStarter.getDefaultInstance()
+//
+//        val mongodConfig = MongodConfigBuilder()
+//                .version(Version.Main.PRODUCTION)
+//                .net(Net(bindIp, port, Network.localhostIsIPv6()))
+//                .build()
+//
+//        mongodExecutable = starter.prepare(mongodConfig)
+//        mongodExecutable!!.start()
+//        Mongo.settings = "mongodb://$bindIp:$port"
 
     }
 
-    @AfterClass fun stop() {
-        mongodExecutable!!.stop()
-    }
 
 
     @Test fun shouldInsertAndRetrieveUser() {
@@ -100,17 +99,18 @@ class StorageTest {
         Mongo.instance.getCollection(UserRepo::class.java.simpleName).createIndex(Document("username", "text"), IndexOptions().unique(true)).toBlocking().single()
         println(UserRepo::class.java.simpleName)
         val u = User(username = "test", mail = "test@test.fr", password = Password.encode("pass", "salt"))
+        val u2 = User(username = "test", mail = "dd@test.fr", password = Password.encode("dd", "salt"))
 
         val testSub: TestSubscriber<Any> = TestSubscriber()
         val testSub2: TestSubscriber<Any> = TestSubscriber()
 
         UserRepo.saveOneUser(u).doOnSuccess {
-            UserRepo.saveOneUser(u).doOnSuccess {
-                val nbUser =Mongo.instance.getCollection(UserRepo::class.java.simpleName).count().toBlocking().first()
+            UserRepo.saveOneUser(u2).doOnSuccess {
+                val nbUser = UserRepo.collection.count().toBlocking().first()
                 println("Nb User : $nbUser")
 
-                Assert.assertEquals(1,nbUser)
-            }.subscribe(testSub2)
+                Assert.assertEquals(nbUser,1)
+            }.doOnError(::print).subscribe(testSub2)
         }.subscribe(testSub)
 
 

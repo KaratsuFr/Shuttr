@@ -11,6 +11,7 @@ import org.bson.types.ObjectId
  * </br>- avatar to illustrate his face
  * </br>- Gallery to manage his photos
  */
-data class User(val username: String, @JsonIgnore var password: Password, var mail: String? = null, var avatar: ByteArray? = null){
-    var _id: ObjectId?=null
+data class User(val username: String, @JsonIgnore var password: Password, var mail: String? = null, var avatar: ByteArray? = null) {
+    var _id: ObjectId? = null
+
 }

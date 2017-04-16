@@ -1,11 +1,13 @@
 package fr.netsah.photoServ.security
 
+import mu.KLogging
 import org.jboss.resteasy.core.Headers
 import org.jboss.resteasy.core.ResourceMethodInvoker
 import org.jboss.resteasy.core.ServerResponse
 import org.jboss.resteasy.plugins.server.embedded.SimplePrincipal
 import org.jboss.resteasy.util.Base64
 import java.io.IOException
+import java.net.URLDecoder
 import java.security.Principal
 import java.util.*
 import javax.annotation.security.DenyAll
@@ -26,10 +28,12 @@ import javax.ws.rs.ext.Provider
 @Provider
 class SecurityInterceptor : ContainerRequestFilter {
 
+
     @Context
     lateinit var webRequest: HttpServletRequest
 
     companion object {
+        val logger = KLogging().logger
         val AUTHORIZATION_PROPERTY = "Authorization"
         val AUTHENTICATION_BASIC_SCHEME = "Basic "
         val AUTHENTICATION_TOKEN_SCHEME = "Token "
@@ -40,98 +44,119 @@ class SecurityInterceptor : ContainerRequestFilter {
     }
 
     override fun filter(requestContext: ContainerRequestContext) {
-        val methodInvoker = requestContext.getProperty("org.jboss.resteasy.core.ResourceMethodInvoker") as ResourceMethodInvoker
-        val method = methodInvoker.method
-        //Access allowed for all
-        if (!method.isAnnotationPresent(PermitAll::class.java)) {
-            //Access denied for all
-            if (method.isAnnotationPresent(DenyAll::class.java)) {
-                requestContext.abortWith(ACCESS_FORBIDDEN)
-                return
-            }
-            //Get request headers
-            val headers = requestContext.headers
-            //Fetch authorization header
-            val authorization = headers[AUTHORIZATION_PROPERTY]
-            //If no authorization information present; block access
-            if (authorization == null || authorization.isEmpty()) {
-                requestContext.abortWith(ACCESS_DENIED)
-                return
-            }
+        try {
 
-            val username: String?
-
-            //Get encoded username and password
-            val basicAuthInfo = authorization.find { h -> h.startsWith(AUTHENTICATION_BASIC_SCHEME) }
-            val tokenInfo = authorization.find { h -> h.startsWith(AUTHENTICATION_TOKEN_SCHEME) }
-
-            if (tokenInfo != null) {
-                var tokenEncoded = tokenInfo.replaceFirst(AUTHENTICATION_TOKEN_SCHEME, "")
-
-                try {
-                    tokenEncoded = String(Base64.decode(tokenEncoded))
-                } catch (e: IOException) {
-                    requestContext.abortWith(SERVER_ERROR)
+            val methodInvoker = requestContext.getProperty("org.jboss.resteasy.core.ResourceMethodInvoker") as ResourceMethodInvoker
+            val method = methodInvoker.method
+            //Access allowed for all
+            if (!method.isAnnotationPresent(PermitAll::class.java)) {
+                //Access denied for all
+                if (method.isAnnotationPresent(DenyAll::class.java)) {
+                    requestContext.abortWith(ACCESS_FORBIDDEN)
                     return
                 }
 
-                //Split username and password tokens
-                val tokenizer = StringTokenizer(tokenEncoded, ":")
-                username = tokenizer.nextToken()
-                val tokenToCheck = tokenizer.nextToken()
+                // GET cookies info
+                var tokenInfo: String? = null
+                var basicAuthInfo: String? = null
+                val username: String?
 
-                if (tokenToCheck != UserSecurityUtils.calculateHMAC(username)) {
+                val cookies = requestContext.cookies
+                if (cookies != null) {
+                    val tokenCookie = cookies["token"]
+                    if (tokenCookie != null) {
+                        tokenInfo = tokenCookie.value
+                    }
+                }
+
+                // fallback from cookie to headers
+                if (tokenInfo == null) {
+                    //Get request headers
+                    val headers = requestContext.headers
+                    //Fetch authorization header
+                    var authorization = headers[AUTHORIZATION_PROPERTY]
+                    //If no authorization information present; fallback to cookie then block access
+                    if (authorization == null || authorization.isEmpty()) {
+
+                        if (authorization == null || authorization.isEmpty()) {
+                            requestContext.abortWith(ACCESS_DENIED)
+                            return
+                        }
+                    }
+
+                    //Get encoded username and password
+                    basicAuthInfo = authorization.find { h -> h.startsWith(AUTHENTICATION_BASIC_SCHEME) }
+                    tokenInfo = authorization.find { h -> h.startsWith(AUTHENTICATION_TOKEN_SCHEME) }
+                }
+
+                if (tokenInfo != null) {
+                    var tokenEncoded = URLDecoder.decode(tokenInfo, "UTF-8").replaceFirst(AUTHENTICATION_TOKEN_SCHEME, "")
+                    try {
+                        tokenEncoded = String(Base64.decode(tokenEncoded))
+                    } catch (e: IOException) {
+                        logger.warn("Error decoding token", e)
+                        requestContext.abortWith(SERVER_ERROR)
+                        return
+                    }
+
+                    //Split username and password tokens
+                    val tokenizer = StringTokenizer(tokenEncoded, ":")
+                    username = tokenizer.nextToken()
+                    val tokenToCheck = tokenizer.nextToken()
+
+                    if (tokenToCheck != UserSecurityUtils.calculateHMAC(username)) {
+                        logger.info("Access denied for user $username for token $tokenEncoded")
+                        requestContext.abortWith(ACCESS_DENIED)
+                        return
+                    }
+                } else if (basicAuthInfo != null) {
+                    val encodedUserPassword = basicAuthInfo.replaceFirst(AUTHENTICATION_BASIC_SCHEME, "")
+                    //Decode username and password
+                    val usernameAndPassword: String?
+                    try {
+                        usernameAndPassword = String(Base64.decode(encodedUserPassword))
+                    } catch (e: IOException) {
+                        requestContext.abortWith(SERVER_ERROR)
+                        return
+                    }
+                    //Split username and password tokens
+                    val tokenizer = StringTokenizer(usernameAndPassword, ":")
+                    username = tokenizer.nextToken()
+                    if (username == null) {
+                        requestContext.abortWith(ACCESS_DENIED)
+                        return
+                    }
+                    val password = tokenizer.nextToken()
+
+                    try {
+                        UserSecurityUtils.isValidUser(username, password)
+                    } catch (ex: NotFoundException) {
+                        requestContext.abortWith(ACCESS_DENIED)
+                        return
+                    }
+                } else {
                     requestContext.abortWith(ACCESS_DENIED)
                     return
                 }
-            } else if (basicAuthInfo != null) {
-                val encodedUserPassword = basicAuthInfo.replaceFirst(AUTHENTICATION_BASIC_SCHEME, "")
-                //Decode username and password
-                val usernameAndPassword: String?
-                try {
-                    usernameAndPassword = String(Base64.decode(encodedUserPassword))
-                } catch (e: IOException) {
-                    requestContext.abortWith(SERVER_ERROR)
-                    return
-                }
-                //Split username and password tokens
-                val tokenizer = StringTokenizer(usernameAndPassword, ":")
-                username = tokenizer.nextToken()
-                if (username == null) {
-                    requestContext.abortWith(ACCESS_DENIED)
-                    return
-                }
-                val password = tokenizer.nextToken()
+                requestContext.securityContext = object : SecurityContext {
+                    override fun getUserPrincipal(): Principal {
+                        return SimplePrincipal(username)
+                    }
 
-                try {
-                    UserSecurityUtils.isValidUser(username, password)
-                } catch (ex: NotFoundException) {
-                    requestContext.abortWith(ACCESS_DENIED)
-                    return
-                }
-            } else {
-                requestContext.abortWith(ACCESS_DENIED)
-                return
-            }
-            requestContext.securityContext = object : SecurityContext {
-                override fun getUserPrincipal(): Principal {
-                    return SimplePrincipal(username)
+                    override fun isUserInRole(s: String): Boolean {
+                        return false
+                    }
+
+                    override fun isSecure(): Boolean {
+                        return false
+                    }
+
+                    override fun getAuthenticationScheme(): String? {
+                        return null
+                    }
                 }
 
-                override fun isUserInRole(s: String): Boolean {
-                    return false
-                }
-
-                override fun isSecure(): Boolean {
-                    return false
-                }
-
-                override fun getAuthenticationScheme(): String? {
-                    return null
-                }
-            }
-
-            //Verify user access
+                //Verify user access
 //            if (method.isAnnotationPresent(RolesAllowed::class.java)) {
 //                val rolesAnnotation = method.getAnnotation(RolesAllowed::class.java)
 //                val rolesSet = HashSet<String>(rolesAnnotation.value.asList())
@@ -143,6 +168,10 @@ class SecurityInterceptor : ContainerRequestFilter {
 //                    return
 //                }
 //            }
+            }
+        } catch(e: Throwable) {
+            logger.warn("Micha you maid a bug", e)
+            throw e
         }
     }
 
