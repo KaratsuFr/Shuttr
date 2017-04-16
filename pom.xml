@@ -187,20 +187,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>2.5</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>src/main/webapp/vendor</directory>
-                        </fileset>
-                        <fileset>
-                            <directory>node_modules</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>yuicompressor-maven-plugin</artifactId>
@@ -275,6 +262,21 @@
                                 <argument>install</argument>
                             </arguments>
                             <workingDirectory>${basedir}</workingDirectory>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>src/main/webapp/vendor</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>node_modules</directory>
+                                </fileset>
+                            </filesets>
                         </configuration>
                     </plugin>
                 </plugins>
